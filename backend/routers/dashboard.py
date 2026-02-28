@@ -47,9 +47,15 @@ def create_dummy_sale(medicine_id: int, qty: int, db: Session = Depends(get_db))
         amount = med.price * qty
         sale = Sale(medicine_id=med.id, quantity_sold=qty, total_amount=amount)
         db.add(sale)
+        
         med.quantity -= qty
         from services.inventory_service import update_medicine_status
-        update_medicine_status(med)
-        db.commit()
-        return {"msg": "Sale recorded"}
+        med = update_medicine_status(med)
+        
+        try:
+            db.commit()
+            return {"msg": "Sale recorded"}
+        except Exception as e:
+            db.rollback()
+            return {"msg": f"Failed due to internal error: {str(e)}"}
     return {"msg": "Failed. Insufficient stock."}

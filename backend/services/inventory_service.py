@@ -3,7 +3,7 @@ from datetime import datetime
 from models import Medicine
 from schemas import MedicineCreate, MedicineUpdate
 
-LOW_STOCK_THRESHOLD = 20
+LOW_STOCK_THRESHOLD = 10
 
 def update_medicine_status(medicine: Medicine):
     # Auto status logic
@@ -29,12 +29,16 @@ def check_all_medicines_status(db: Session):
     db.commit()
 
 def create_medicine(db: Session, medicine: MedicineCreate) -> Medicine:
-    db_med = Medicine(**medicine.model_dump())
-    db_med = update_medicine_status(db_med)
-    db.add(db_med)
-    db.commit()
-    db.refresh(db_med)
-    return db_med
+    try:
+        db_med = Medicine(**medicine.model_dump())
+        db_med = update_medicine_status(db_med)
+        db.add(db_med)
+        db.commit()
+        db.refresh(db_med)
+        return db_med
+    except Exception as e:
+        db.rollback()
+        raise e
 
 def get_medicine(db: Session, medicine_id: int):
     return db.query(Medicine).filter(Medicine.id == medicine_id).first()
@@ -51,10 +55,15 @@ def update_medicine(db: Session, medicine_id: int, updates: MedicineUpdate):
     db_med = get_medicine(db, medicine_id)
     if not db_med:
         return None
-    for key, value in updates.model_dump(exclude_unset=True).items():
-        setattr(db_med, key, value)
-    
-    db_med = update_medicine_status(db_med)
-    db.commit()
-    db.refresh(db_med)
-    return db_med
+        
+    try:
+        for key, value in updates.model_dump(exclude_unset=True).items():
+            setattr(db_med, key, value)
+        
+        db_med = update_medicine_status(db_med)
+        db.commit()
+        db.refresh(db_med)
+        return db_med
+    except Exception as e:
+        db.rollback()
+        raise e
