@@ -43,13 +43,28 @@ def create_medicine(db: Session, medicine: MedicineCreate) -> Medicine:
 def get_medicine(db: Session, medicine_id: int):
     return db.query(Medicine).filter(Medicine.id == medicine_id).first()
 
-def get_medicines(db: Session, skip: int = 0, limit: int = 100, search: str = None, status: str = None):
+def get_medicines(db: Session, skip: int = 0, limit: int = 100, search: str = None, status: str = None, sort_by: str = None, order: str = "asc"):
     query = db.query(Medicine)
     if search:
         query = query.filter(Medicine.name.ilike(f"%{search}%"))
     if status:
         query = query.filter(Medicine.status == status)
-    return query.offset(skip).limit(limit).all()
+        
+    total = query.count()
+    
+    if sort_by == "expiry_date":
+        if order == "desc":
+            query = query.order_by(Medicine.expiry_date.desc())
+        else:
+            query = query.order_by(Medicine.expiry_date.asc())
+    elif sort_by == "quantity":
+        if order == "desc":
+            query = query.order_by(Medicine.quantity.desc())
+        else:
+            query = query.order_by(Medicine.quantity.asc())
+            
+    items = query.offset(skip).limit(limit).all()
+    return items, total
 
 def update_medicine(db: Session, medicine_id: int, updates: MedicineUpdate):
     db_med = get_medicine(db, medicine_id)

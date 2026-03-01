@@ -2,12 +2,13 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
     Search, LayoutDashboard, Menu, Activity, Calendar,
-    Users, Stethoscope, Pill, Plus, Settings
+    Users, Stethoscope, Pill, Moon, Sun, Settings
 } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 
-const Sidebar = () => {
+const Sidebar = ({ isDark, toggleTheme }) => {
     const location = useLocation();
     const path = location.pathname;
 
@@ -49,8 +50,8 @@ const Sidebar = () => {
 
             <div className="sidebar-divider" style={{ marginTop: 'auto' }}></div>
 
-            <div className="sidebar-icon">
-                <Plus size={22} />
+            <div className="sidebar-icon" onClick={toggleTheme} title="Toggle Theme">
+                {isDark ? <Sun size={22} /> : <Moon size={22} />}
             </div>
             <div className="sidebar-icon mb-4">
                 <Settings size={22} />
@@ -60,9 +61,20 @@ const Sidebar = () => {
 };
 
 function App() {
+    const [isDark, setIsDark] = React.useState(false);
+
+    React.useEffect(() => {
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [isDark]);
+
     return (
         <Router>
-            <Sidebar />
+            <Toaster position="top-right" />
+            <Sidebar isDark={isDark} toggleTheme={() => setIsDark(!isDark)} />
             <main className="main-surface">
                 <div className="main-scroll">
                     <Routes>

@@ -31,6 +31,12 @@ class MedicineOut(MedicineBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+class PaginatedMedicine(BaseModel):
+    data: list[MedicineOut]
+    total: int
+    skip: int
+    limit: int
+
 class SaleBase(BaseModel):
     medicine_id: int
     quantity_sold: int

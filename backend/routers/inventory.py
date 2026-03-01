@@ -2,15 +2,22 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
+import schemas
 from schemas import MedicineOut, MedicineCreate, MedicineUpdate, MedicineStatusUpdate
 from services import inventory_service
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
-@router.get("", response_model=List[MedicineOut])
-def get_inventory(skip: int = 0, limit: int = 100, search: Optional[str] = None, status: Optional[str] = None, db: Session = Depends(get_db)):
+@router.get("", response_model=schemas.PaginatedMedicine)
+def get_inventory(skip: int = 0, limit: int = 100, search: Optional[str] = None, status: Optional[str] = None, sort_by: Optional[str] = None, order: Optional[str] = "asc", db: Session = Depends(get_db)):
     inventory_service.check_all_medicines_status(db)
-    return inventory_service.get_medicines(db, skip=skip, limit=limit, search=search, status=status)
+    items, total = inventory_service.get_medicines(db, skip=skip, limit=limit, search=search, status=status, sort_by=sort_by, order=order)
+    return {
+        "data": items,
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }
 
 @router.get("/{id}", response_model=MedicineOut)
 def get_medicine(id: int, db: Session = Depends(get_db)):

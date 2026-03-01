@@ -1,4 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+}
 
 :root {
   --primary: #006ffd;
@@ -37,6 +43,25 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
   --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --secondary: #f8fafc;
+
+  --bg-app: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-panel: #334155;
+  --bg-accent: #0f172a;
+
+  --text-dark: #f8fafc;
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --border: #334155;
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -369,7 +394,7 @@ h5 {
 
 /* Cyan Section (Make a sale / Inventory Overview) */
 .section-cyan {
-  background-color: #f0fdfa;
+  background-color: var(--bg-accent);
   /* Light mint/cyan */
   border-radius: var(--radius-lg);
   padding: 1.5rem;
@@ -414,8 +439,9 @@ h5 {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background-color: white;
+  border: 1px solid var(--border);
+  background-color: var(--bg-surface);
+  color: var(--text-dark);
   font-size: 0.9rem;
   font-family: inherit;
   box-shadow: var(--shadow-sm);
@@ -467,7 +493,7 @@ h5 {
   padding: 1rem 1.25rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  background: white;
+  background: var(--bg-surface);
   transition: 0.2s;
 }
 
@@ -552,7 +578,7 @@ h5 {
 }
 
 .mini-card {
-  background: white;
+  background: var(--bg-surface);
   border-radius: var(--radius-sm);
   padding: 1rem 1.25rem;
   display: flex;
@@ -578,7 +604,7 @@ h5 {
 
 /* Data Table standard */
 .data-table-container {
-  background: white;
+  background: var(--bg-surface);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -621,7 +647,7 @@ h5 {
 }
 
 .data-table-full tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--bg-panel);
 }
 
 .td-bold {
@@ -683,7 +709,8 @@ h5 {
 }
 
 .modal-content {
-  background: white;
+  background: var(--bg-surface);
+  color: var(--text-main);
   border-radius: var(--radius-lg);
   padding: 2rem;
   width: 100%;

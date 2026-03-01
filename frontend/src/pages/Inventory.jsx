@@ -5,8 +5,9 @@ import {
     Download, Plus, ShoppingCart,
     Package, Search,
     FileText, Filter, CheckCircle2,
-    AlertTriangle, DollarSign, Box
+    AlertTriangle, DollarSign, Box, AlertCircle
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const formatInr = (num) => {
     return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2 });
@@ -17,6 +18,10 @@ const formatInr = (num) => {
 const Inventory = () => {
     const [medicines, setMedicines] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sortBy, setSortBy] = useState("name");
+    const [sortOrder, setSortOrder] = useState("asc");
+
     const [dashboardData, setDashboardData] = useState({
         todaySales: 0,
         itemsSold: 0,
@@ -25,6 +30,8 @@ const Inventory = () => {
     });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isConfirmModal, setIsConfirmModal] = useState(false);
+    const [confirmActionMedId, setConfirmActionMedId] = useState(null);
     const [editingMed, setEditingMed] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
@@ -35,9 +42,16 @@ const Inventory = () => {
     });
 
     useEffect(() => {
-        fetchMedicines();
         fetchDashboardData();
     }, []);
+
+    // Debounced search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchMedicines();
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchQuery, sortBy, sortOrder]);
 
     const fetchDashboardData = async () => {
         try {
@@ -61,9 +75,10 @@ const Inventory = () => {
     const fetchMedicines = async () => {
         try {
             setLoading(true);
-            const res = await axiosInstance.get('/inventory?limit=100');
-            if (res.data && res.data.length > 0) {
-                const mappedMeds = res.data.map(med => ({
+            const res = await axiosInstance.get(`/inventory?limit=100&search=${searchQuery}&sort_by=${sortBy}&order=${sortOrder}`);
+            const items = res.data.data || [];
+            if (items.length > 0) {
+                const mappedMeds = items.map(med => ({
                     id: med.id,
                     name: med.name,
                     generic: 'Generic ' + med.name,
@@ -130,14 +145,27 @@ const Inventory = () => {
             const payload = { ...formData, expiry_date: new Date(formData.expiry_date).toISOString() };
             if (editingMed) {
                 await axiosInstance.put(`/inventory/${editingMed.id}`, payload);
+                toast.success('Medicine updated successfully!');
             } else {
                 await axiosInstance.post('/inventory', payload);
+                toast.success('Medicine added successfully!');
             }
             handleCloseModal();
             fetchMedicines();
         } catch (err) {
-            alert('Failed to save medicine. Check console for details.');
+            toast.error('Failed to save medicine.');
             console.error(err);
+        }
+    };
+
+    const confirmMarkExpired = async () => {
+        try {
+            await axiosInstance.patch(`/inventory/${confirmActionMedId}/status`, { status: "Expired" });
+            toast.success("Medicine explicitly marked as Expired.");
+            setIsConfirmModal(false);
+            fetchMedicines();
+        } catch (err) {
+            toast.error("Failed to update status.");
         }
     };
 
@@ -255,9 +283,40 @@ const Inventory = () => {
 
             <div className="flex-split" style={{ marginBottom: '1.25rem' }}>
                 <h3 className="section-title" style={{ marginBottom: 0 }}>Complete Inventory</h3>
+                <div className="flex-split gap-3" style={{ flex: 1, paddingLeft: '4rem' }}>
+                    <div className="input-with-icon" style={{ flex: 1, maxWidth: '400px' }}>
+                        <Search />
+                        <input
+                            type="text"
+                            className="input-field"
+                            placeholder="Search existing stock..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </div>
                 <div className="flex-split gap-3">
-                    <button className="btn btn-outline"><Filter size={16} /> Filter</button>
-                    <button className="btn btn-outline"><Download size={16} /> Export</button>
+                    <select
+                        className="input-field"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        style={{ padding: '0.6rem 1rem' }}
+                    >
+                        <option value="name">Sort by Name</option>
+                        <option value="expiry_date">Sort by Expiry Date</option>
+                        <option value="quantity">Sort by Quantity</option>
+                    </select>
+                    <select
+                        className="input-field"
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        style={{ padding: '0.6rem 1rem' }}
+                    >
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                    <button className="btn btn-outline" style={{ padding: '0.6rem 1rem' }}><Filter size={16} /> Filter</button>
+                    <button className="btn btn-outline" style={{ padding: '0.6rem 1rem' }}><Download size={16} /> Export</button>
                 </div>
             </div>
 
@@ -294,13 +353,25 @@ const Inventory = () => {
                                 <td style={{ whiteSpace: 'pre-wrap', width: '100px' }}>{med.supplier}</td>
                                 <td>{getStatusBadge(med.status)}</td>
                                 <td>
-                                    <button
-                                        className="btn"
-                                        style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', padding: '0.4rem 0.8rem' }}
-                                        onClick={() => handleOpenModal(med)}
-                                    >
-                                        Edit
-                                    </button>
+                                    <div className="flex-split gap-2">
+                                        <button
+                                            className="btn"
+                                            style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', padding: '0.4rem 0.8rem' }}
+                                            onClick={() => handleOpenModal(med)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="btn btn-outline"
+                                            style={{ color: '#dc2626', borderColor: '#fecaca', padding: '0.4rem 0.8rem' }}
+                                            onClick={() => {
+                                                setConfirmActionMedId(med.id);
+                                                setIsConfirmModal(true);
+                                            }}
+                                        >
+                                            Mark Expired
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -340,6 +411,21 @@ const Inventory = () => {
                                 <button type="submit" className="btn btn-primary">{editingMed ? 'Save Changes' : 'Add Medicine'}</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {isConfirmModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
+                        <AlertCircle size={48} color="#dc2626" style={{ margin: '0 auto 1rem auto' }} />
+                        <h3 style={{ marginBottom: '0.5rem' }}>Mark as Expired?</h3>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                            Are you absolutely sure you want to manually mark this batch as expired? This status override cannot be automatically undone.
+                        </p>
+                        <div className="flex-split" style={{ justifyContent: 'center', gap: '1rem' }}>
+                            <button className="btn btn-outline" onClick={() => setIsConfirmModal(false)}>Cancel</button>
+                            <button className="btn btn-danger" onClick={confirmMarkExpired}>Confirm Expired</button>
+                        </div>
                     </div>
                 </div>
             )}
