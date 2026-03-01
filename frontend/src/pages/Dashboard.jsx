@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import Loader from '../components/Loader';
 import {
@@ -13,6 +14,7 @@ const formatInr = (num) => {
 };
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [data, setData] = useState({
@@ -167,13 +169,13 @@ const Dashboard = () => {
                 <div className="tabs-container">
                     <button className="tab active"><ShoppingCart size={16} /> Sales</button>
                     <button className="tab"><Package size={16} /> Purchase</button>
-                    <button className="tab" onClick={() => window.location.href = '/inventory'}><FileText size={16} /> Inventory</button>
+                    <button className="tab" onClick={() => navigate('/inventory')}><FileText size={16} /> Inventory</button>
                 </div>
                 <div className="tabs-actions">
                     <button className="btn btn-primary" onClick={() => document.querySelector('.input-with-icon input').focus()}>
                         <Plus size={16} /> New Sale
                     </button>
-                    <button className="btn btn-outline" onClick={() => window.location.href = '/inventory'}>
+                    <button className="btn btn-outline" onClick={() => navigate('/inventory')}>
                         <Plus size={16} /> New Purchase
                     </button>
                 </div>

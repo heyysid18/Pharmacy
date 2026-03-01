@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import Loader from '../components/Loader';
 import {
@@ -16,6 +17,7 @@ const formatInr = (num) => {
 
 
 const Inventory = () => {
+    const navigate = useNavigate();
     const [medicines, setMedicines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -232,12 +234,12 @@ const Inventory = () => {
 
             <div className="tabs-row">
                 <div className="tabs-container">
-                    <button className="tab"><ShoppingCart size={16} /> Sales</button>
+                    <button className="tab" onClick={() => navigate('/')}><ShoppingCart size={16} /> Sales</button>
                     <button className="tab"><Package size={16} /> Purchase</button>
                     <button className="tab active"><FileText size={16} /> Inventory</button>
                 </div>
                 <div className="tabs-actions">
-                    <button className="btn btn-outline">
+                    <button className="btn btn-outline" onClick={() => navigate('/')}>
                         <Plus size={16} /> New Sale
                     </button>
                     <button className="btn btn-outline">
