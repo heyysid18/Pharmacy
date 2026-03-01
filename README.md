@@ -1,6 +1,7 @@
 # Pharmacy EMR System 💊
-A comprehensive full-stack Pharmacy Electronic Medical Record (EMR) system built with FastAPI and React (Vite).
+**Deployed at:** [https://pharmacy-frontend-kupf.onrender.com/](https://pharmacy-frontend-kupf.onrender.com/)
 
+A comprehensive full-stack Pharmacy Electronic Medical Record (EMR) system built with FastAPI and React (Vite).
 ## 🏗 REST API Architecture & Features
 The backend is powered by Python **FastAPI** leveraging **SQLAlchemy ORM** and **Pydantic** to provide lightning-fast, highly concurrent RESTful endpoints.
 
